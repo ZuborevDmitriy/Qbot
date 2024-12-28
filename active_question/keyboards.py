@@ -1,0 +1,33 @@
+import math
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+import database.request as rq
+from config.config import PAGE_COUNT
+from aiogram.filters.callback_data import CallbackData
+import emoji
+
+async def active_questions(page: int, user):
+    button_data = await rq.get_queries(user)
+    array_lenght = len(button_data)
+    pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
+    builder = InlineKeyboardBuilder()
+    first_item = PAGE_COUNT*page
+    last_item = first_item+PAGE_COUNT
+    for item in button_data[first_item:last_item]:
+        builder.row(InlineKeyboardButton(text=f"{item}", callback_data=f"quest_{item}"))
+    buttons = []
+    if page >= 1:
+        buttons.append(InlineKeyboardButton(text="<<<", callback_data=f"questpage_{page-1}_{pages}"))
+    if page < pages:
+        buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"questpage_{page+1}_{pages}"))
+    builder.row(*buttons)
+    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
+    builder.row(inline_button_cancel)
+    return builder.as_markup(resize_keyboard=True)
+
+async def back_to_menu(back: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    button2 = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
+    button1 = InlineKeyboardButton(text="В меню", callback_data="cancel")
+    builder.row(button1, button2)
+    return builder.as_markup()
