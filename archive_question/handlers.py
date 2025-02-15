@@ -6,39 +6,39 @@ from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InputMediaPhoto
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-import active_question.keyboards as aqk
+import archive_question.keyboards as aqk
 import database.request as rq
 from config.config import PAGE_COUNT
 from aiogram.utils.media_group import MediaGroupBuilder
 import menu.keyboards as menu_keyboards
 
-active_question_router = Router()
+archive_question_router = Router()
 
 #Хэндлер для получения списка вопросов
-@active_question_router.callback_query(F.data == 'active_query')
+@archive_question_router.callback_query(F.data == 'archive_query')
 async def obtain_project_info(callback:CallbackQuery):
     user = await rq.get_FIO(callback.from_user.id)
-    button_data = await rq.get_active_queries(user)
+    button_data = await rq.get_archive_queries(user)
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
     message_text = f"Выберите вопрос из списка ({1}/{int(pages)+1})"
-    await callback.message.edit_text(text=message_text, reply_markup=await aqk.active_questions(0, user))
+    await callback.message.edit_text(text=message_text, reply_markup=await aqk.archive_questions(0, user))
 #Хэндлер для пролистывания списка вопросов
-@active_question_router.callback_query(F.data.contains("actquestpage_"))
+@archive_question_router.callback_query(F.data.contains("arcquestpage_"))
 async def obtain_project_info(callback:CallbackQuery):
     user = await rq.get_FIO(callback.from_user.id)
     page = callback.data.split("_")[1]
     pages = callback.data.split("_")[2]
     message_text = f"Выберите вопрос из списка ({int(page)+1}/{int(pages)+1})"
-    await callback.message.edit_text(text=message_text, reply_markup=await aqk.active_questions(int(page), user))
+    await callback.message.edit_text(text=message_text, reply_markup=await aqk.archive_questions(int(page), user))
 
 
 
 #Хэндлер для обработки выбранного вопроса
-@active_question_router.callback_query(F.data.contains("actquest_"))
+@archive_question_router.callback_query(F.data.contains("arcquest_"))
 async def obtain_project_info(callback:CallbackQuery, bot:Bot):
     query_id = callback.data.split("_")[1]
-    query_info = await rq.get_active_query(int(query_id))
+    query_info = await rq.get_archive_query(int(query_id))
     city_name = query_info.city_name
     commercial_name = query_info.commercial_name
     project_name = query_info.project_name
@@ -71,6 +71,6 @@ async def obtain_project_info(callback:CallbackQuery, bot:Bot):
         for ph in photos:
             photo_group.add_photo(ph)
         await bot.send_media_group(chat_id=callback.message.chat.id, media=photo_group.build())
-        await callback.message.answer(text="Выберите действие:", reply_markup=await aqk.back_to_menu("active_query"))
+        await callback.message.answer(text="Выберите действие:", reply_markup=await aqk.back_to_menu("archive_query"))
     else:
-        await callback.message.edit_text(text=message_text, reply_markup=await aqk.back_to_menu("active_query"))
+        await callback.message.edit_text(text=message_text, reply_markup=await aqk.back_to_menu("archive_query"))

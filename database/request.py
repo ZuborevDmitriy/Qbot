@@ -1,5 +1,5 @@
 from database.models import async_session
-from database.models import User, Project, Album, Query_b, Query_a
+from database.models import User, Project, Album, Query
 from sqlalchemy import select, update
             
 #Проверка пользователя на регистрацию
@@ -61,33 +61,10 @@ async def get_FIO(user_tg_id):
         await session.close()
     return FIO
 
-#Отправление данных о вопросе в БД до отправки в kafka
-async def send_query_before(make_id, cityname, commname, prname, comm, album, systquest, stateofworks, econeff, reducetime, typeofnote, POS, photos, author):
+#Отправление данных о вопросе в БД после получения из kafka
+async def send_query_after(make_id, cityname, commname, prname, comm, album, systquest, stateofworks, econeff, reducetime, typeofnote, POS, photos, changecode, date, recomend, author, stat):
     async with async_session() as session:
-        query = Query_b(
-        id = make_id,
-        city_name = cityname,
-        commercial_name = commname,
-        project_name = prname,
-        comment = comm,
-        album = album,
-        system_quest = bool(systquest),
-        state_of_works = stateofworks,
-        economic_effect = float(econeff),
-        reduce_time = int(reducetime),
-        type_of_note = typeofnote,
-        POS = bool(POS),
-        photo = photos,
-        author = author
-        )
-        session.add(query)
-        await session.commit()
-        await session.close()
-
-#Отправление данных о вопросе в БД после отправки в kafka
-async def send_query_after(make_id, cityname, commname, prname, comm, album, systquest, stateofworks, econeff, reducetime, typeofnote, POS, photos, changecode, date, recomend, author):
-    async with async_session() as session:
-        query = Query_a(
+        query = Query(
         id = make_id,
         city_name = cityname,
         commercial_name = commname,
@@ -104,7 +81,8 @@ async def send_query_after(make_id, cityname, commname, prname, comm, album, sys
         change_code = int(changecode),
         date = date,
         recomendation = recomend,
-        author = author
+        author = author,
+        status = stat
         )
         session.add(query)
         await session.commit()
@@ -113,23 +91,72 @@ async def send_query_after(make_id, cityname, commname, prname, comm, album, sys
 #Поиск уже имеющихся записей
 async def search_duplicate(id):
     async with async_session() as session:
-        entry = await session.execute(select(Query_a).where(Query_a.id==id))
+        entry = await session.execute(select(Query).where(Query.id==id))
         entry = entry.scalars().first()
         await session.close()
     return entry
 
 #Получение списка активных вопросов пользователя
-async def get_queries(user):
+async def get_active_queries(user):
     async with async_session() as session:
-        queries = await session.execute(select(Query_a.id).where(Query_a.author==user))
+        queries = await session.execute(select(Query.id).where(Query.author==user, Query.status=='created'))
         queries = queries.scalars().all()
         await session.close()
     return queries
-
 #Получение информации о выбранном вопросе
-async def get_query(id):
+async def get_active_query(id):
     async with async_session() as session:
-        query = await session.execute(select(Query_a).where(Query_a.id==id))
+        query = await session.execute(select(Query).where(Query.id==id))
         query = query.scalars().first()
         await session.close()
     return query
+
+#Получение списка архивных вопросов пользователя
+async def get_archive_queries(user):
+    async with async_session() as session:
+        queries = await session.execute(select(Query.id).where(Query.author==user, Query.status=='closed'))
+        queries = queries.scalars().all()
+        await session.close()
+    return queries
+#Получение информации о выбранном вопросе
+async def get_archive_query(id):
+    async with async_session() as session:
+        query = await session.execute(select(Query).where(Query.id==id))
+        query = query.scalars().first()
+        await session.close()
+    return query
+
+#Получение списка всех вопросов пользователя dev
+async def get_dev_queries(user):
+    async with async_session() as session:
+        queries = await session.execute(select(Query.id).where(Query.author==user, Query.status!='closed'))
+        queries = queries.scalars().all()
+        await session.close()
+    return queries
+#Получение информации о выбранном вопросе dev
+async def get_dev_query(id):
+    async with async_session() as session:
+        query = await session.execute(select(Query).where(Query.id==id))
+        query = query.scalars().first()
+        await session.close()
+    return query
+
+#Проверка вопроса по времени
+async def research_query(id, date_time):
+    async with async_session() as session:
+        query = await session.execute(select(Query.date).where(Query.id==id))
+        query = query.scalars().first()
+        if(date_time > query):
+            return True
+            
+#Обновление вопроса через dev
+async def update_dev_query(id, chcode, rec):
+    async with async_session() as session:
+        await session.execute(update(Query).where(Query.id==id).values(change_code=chcode, recomendation=rec))
+        await session.commit()
+        await session.close()
+async def upd_dev_query(id, stat):
+    async with async_session() as session:
+        await session.execute(update(Query).where(Query.id==id).values(status=stat))
+        await session.commit()
+        await session.close()

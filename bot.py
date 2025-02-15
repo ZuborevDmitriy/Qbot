@@ -5,6 +5,8 @@ from aiogram import Bot, Dispatcher
 from regist.handlers import regist_router
 from create_question.handlers import create_question_router
 from active_question.handlers import active_question_router
+from archive_question.handlers import archive_question_router
+from dev_block.handlers import dev_question_router
 from aiogram.enums import ParseMode
 from database.models import async_main
 
@@ -12,8 +14,8 @@ bot = Bot(token=os.getenv('TOKEN'), default=DefaultBotProperties(parse_mode=Pars
 dp = Dispatcher()
 
 async def main():
-    # logging.basicConfig(level=logging.INFO)
-    dp.include_routers(regist_router, create_question_router, active_question_router)
+    logging.basicConfig(level=logging.INFO)
+    dp.include_routers(regist_router, create_question_router, active_question_router, archive_question_router, dev_question_router)
     # await async_main()
     await dp.start_polling(bot)
     

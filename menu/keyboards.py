@@ -10,5 +10,7 @@ def main_table() -> InlineKeyboardMarkup:
     button2 = InlineKeyboardButton(text=text2, callback_data='active_query')
     text3 = f"Архив вопросов {emoji.emojize(':card_index_dividers:')}"
     button3 = InlineKeyboardButton(text=text3, callback_data='archive_query')
-    builder.add(button1,button2,button3)
+    text4 = f"DEV {emoji.emojize(':radioactive:')}"
+    button4 = InlineKeyboardButton(text=text4, callback_data='list_queries_to_update')
+    builder.add(button1,button2,button3, button4)
     return builder.adjust(1).as_markup()

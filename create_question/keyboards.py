@@ -16,6 +16,7 @@ async def first()->InlineKeyboardMarkup:
 async def second(next: str)->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Следующий пункт>>>", callback_data=f"{next}"))
+    builder.add(InlineKeyboardButton(text="Отмена", callback_data="cancel"))
     return builder.adjust(1).as_markup()
 
 #Если фотографию отправили сразу

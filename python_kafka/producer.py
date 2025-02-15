@@ -11,5 +11,11 @@ producer = KafkaProducer(
     value_serializer=serializer
 )
 
-def send_in_kafka(dummy_message):
-    producer.send('messages', dummy_message)
+def send_in_kafka0(dummy_message):
+    producer.send('messages0', dummy_message)
+
+def send_in_kafka1(dummy_message):
+    producer.send('messages1', dummy_message)
+    
+def upd_with_kafka(dummy_message):
+    producer.send('updmess', dummy_message)
