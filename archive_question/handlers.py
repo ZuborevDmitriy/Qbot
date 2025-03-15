@@ -11,18 +11,22 @@ import database.request as rq
 from config.config import PAGE_COUNT
 from aiogram.utils.media_group import MediaGroupBuilder
 import menu.keyboards as menu_keyboards
+import emoji
 
 archive_question_router = Router()
 
 #Хэндлер для получения списка вопросов
-@archive_question_router.callback_query(F.data == 'archive_query')
-async def obtain_project_info(callback:CallbackQuery):
-    user = await rq.get_FIO(callback.from_user.id)
+@archive_question_router.message(F.text == f"Архив вопросов {emoji.emojize(':card_index_dividers:')}")
+async def obtain_project_info(message:Message):
+    user = await rq.get_FIO(message.from_user.id)
     button_data = await rq.get_archive_queries(user)
     array_lenght = len(button_data)
+    await message.reply(text="Переходим в архивные вопросы...")
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
-    message_text = f"Выберите вопрос из списка ({1}/{int(pages)+1})"
-    await callback.message.edit_text(text=message_text, reply_markup=await aqk.archive_questions(0, user))
+    await message.answer(text=f"Список архивных вопросов: {array_lenght}\nСтраниа {1} из {int(pages)+1}.\nВыберите вопрос из списка:", reply_markup=await aqk.archive_questions(0, user))
+    
+
+
 #Хэндлер для пролистывания списка вопросов
 @archive_question_router.callback_query(F.data.contains("arcquestpage_"))
 async def obtain_project_info(callback:CallbackQuery):

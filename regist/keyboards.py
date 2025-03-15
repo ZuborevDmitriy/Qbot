@@ -1,13 +1,14 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-def authorization() -> InlineKeyboardMarkup:
-    reg_k = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='Войти', callback_data='regist')],
-    ])
-    return reg_k
-
+def authorization() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+    button = KeyboardButton(text="Войти")
+    builder.add(button)
+    return builder.adjust(1).as_markup(resize_keyboard=True)
+    
 def get_number() -> ReplyKeyboardMarkup:
-    reg_numb = ReplyKeyboardMarkup(keyboard=[
-        [KeyboardButton(text='Отправить номер', request_contact=True)],
-    ], resize_keyboard=True, input_field_placeholder='Нажмите на кнопку!')
-    return reg_numb
+    builder = ReplyKeyboardBuilder()
+    button = KeyboardButton(text='Отправить номер', request_contact=True)
+    builder.add(button)
+    return builder.adjust(1).as_markup(resize_keyboard=True, input_field_placeholder="Нажмите на кнопку!")

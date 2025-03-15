@@ -6,12 +6,16 @@ from config.config import PAGE_COUNT
 from aiogram.filters.callback_data import CallbackData
 import emoji
 
-async def first()->InlineKeyboardMarkup:
+async def cancel_for_reply()->ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+    builder.add(KeyboardButton(text="Отмена"))
+    return builder.adjust(1).as_markup(resize_keyboard=True, input_field_placeholder="Заполнение формы")
+
+async def step_photo()->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Отправить сейчас", callback_data="send_photo"))
     builder.add(InlineKeyboardButton(text="Отложить", callback_data="chose_city"))
     return builder.adjust(1).as_markup()
-
 
 async def second(next: str)->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
@@ -55,8 +59,6 @@ async def city1(page: int):
     if page < pages:
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"citypage_{page+1}_{pages}"))
     builder.row(*buttons)
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel)
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -76,8 +78,7 @@ async def commercial_name(page: int, city: str, back: str):
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"commpage_{page+1}_{pages}"))
     builder.row(*buttons)
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -97,16 +98,14 @@ async def project_name(page: int, comm: str, back: str):
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"projectpage_{page+1}_{pages}"))
     builder.row(*buttons)
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup(resize_keyboard=True)
 
 
 async def back(back: str)->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.add(inline_button_back)
     return builder.as_markup()
 
 
