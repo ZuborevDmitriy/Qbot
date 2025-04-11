@@ -50,7 +50,7 @@ class Query(Base):
     date = mapped_column(DateTime, default=None, nullable=True)
     recomendation = mapped_column(VARCHAR(40), default=None, nullable=True)
     status = mapped_column(VARCHAR(7), nullable=False)
-    author = mapped_column(VARCHAR(40), ForeignKey('users.user_info', ondelete='CASCADE'))
+    author_id = mapped_column(INTEGER, ForeignKey('users.tg_id', ondelete='CASCADE'), nullable=False)
 
 async def async_main():
     async with engine.begin() as conn:

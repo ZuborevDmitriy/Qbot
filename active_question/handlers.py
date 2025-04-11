@@ -12,25 +12,38 @@ from config.config import PAGE_COUNT
 from aiogram.utils.media_group import MediaGroupBuilder
 import menu.keyboards as menu_keyboards
 import emoji
+from create_question.handlers import Temp
+import menu.keyboards as mk
 
 active_question_router = Router()
 
 #Хэндлер для получения списка вопросов
 @active_question_router.message(F.text == f"Активные вопросы {emoji.emojize(':closed_mailbox_with_raised_flag:')}")
-async def obtain_project_info(message:Message):
-    user = await rq.get_FIO(message.from_user.id)
+async def obtain_project_info(message:Message, state:FSMContext):
+    user = message.from_user.id
     button_data = await rq.get_active_queries(user)
     array_lenght = len(button_data)
-    await message.reply(text="Переходим в активные вопросы...")
+    message0 = await message.reply(text="Переходим в активные вопросы...", reply_markup=await mk.go_to_menu())
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
-    await message.answer(text=f"Список активных вопросов: {array_lenght}\nСтраниа {1} из {int(pages)+1}.\nВыберите вопрос из списка:", reply_markup=await aqk.active_questions(0, user))
+    message1 = await message.answer(text=f"Список активных вопросов: {array_lenght}\nСтраниа {1} из {int(pages)+1}.\nВыберите вопрос из списка:", reply_markup=await aqk.active_questions(0, user))
+    await state.update_data(messages_id = {f"{message0.text}":message0.message_id, f"{message1.text}":message1.message_id})
+    
+    
+#Хэндлер для получения списка вопросов для кнопки назад
+@active_question_router.callback_query(F.data == "active_query")
+async def obtain_project_info(callback: CallbackQuery):
+    user = callback.from_user.id
+    button_data = await rq.get_active_queries(user)
+    array_lenght = len(button_data)
+    pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
+    await callback.message.edit_text(text=f"Список активных вопросов: {array_lenght}\nСтраниа {1} из {int(pages)+1}.\nВыберите вопрос из списка:", reply_markup=await aqk.active_questions(0, user))
     
     
     
 #Хэндлер для пролистывания списка вопросов
 @active_question_router.callback_query(F.data.contains("actquestpage_"))
 async def obtain_project_info(callback:CallbackQuery):
-    user = await rq.get_FIO(callback.from_user.id)
+    user = callback.from_user.id
     page = callback.data.split("_")[1]
     pages = callback.data.split("_")[2]
     message_text = f"Выберите вопрос из списка ({int(page)+1}/{int(pages)+1})"

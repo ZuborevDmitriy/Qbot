@@ -31,8 +31,3 @@ async def dev_choise(param: int):
     button2 = InlineKeyboardButton(text=text2, callback_data=f'devclose_{param}')
     builder.add(button1, button2)
     return builder.adjust(1).as_markup()
-
-async def go_to_menu()->ReplyKeyboardMarkup:
-    builder = ReplyKeyboardBuilder()
-    builder.add(KeyboardButton(text="В меню"))
-    return builder.adjust(1).as_markup(resize_keyboard=True, input_field_placeholder="...")

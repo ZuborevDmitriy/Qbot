@@ -14,30 +14,26 @@ import menu.keyboards as menu_keyboards
 from python_kafka.producer import upd_with_kafka
 import emoji
 import dev_block.keyboards as dbk
+from create_question.handlers import Temp
+import menu.keyboards as mk
 
 dev_question_router = Router()
 
-
-#Хэндлер для возвращения в меню для reply
-@dev_question_router.message(F.text == "В меню")
-async def get_projects_info(message: Message):
-    await message.answer(text="Меню", reply_markup=menu_keyboards.main_table())
-
 #Хэндлер для получения списка вопросов
 @dev_question_router.message(F.text == f"DEV {emoji.emojize(':radioactive:')}")
-async def obtain_project_info(message:Message):
-    await message.reply(text="Перехожу в блок DEV...", reply_markup=await dbk.go_to_menu())
-    user = await rq.get_FIO(message.from_user.id)
+async def obtain_project_info(message:Message, state:FSMContext):
+    message0 = await message.reply(text="Перехожу в блок DEV...", reply_markup=await mk.go_to_menu())
+    user = message.from_user.id
     button_data = await rq.get_dev_queries(user)
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
-    message_text = f"Выберите вопрос из списка ({1}/{int(pages)+1})"
-    await message.answer(text=message_text, reply_markup=await dbk.dev_questions(0, user))
+    message1 = await message.answer(text=f"Выберите вопрос из списка ({1}/{int(pages)+1})", reply_markup=await dbk.dev_questions(0, user))
+    await state.update_data(messages_id = {f"{message0.text}":message0.message_id, f"{message1.text}":message1.message_id})
 
 #Хэндлер для пролистывания списка вопросов
 @dev_question_router.callback_query(F.data.contains("devquestpage_"))
 async def obtain_project_info(callback:CallbackQuery):
-    user = await rq.get_FIO(callback.from_user.id)
+    user = callback.from_user.id
     page = callback.data.split("_")[1]
     pages = callback.data.split("_")[2]
     message_text = f"Выберите вопрос из списка ({int(page)+1}/{int(pages)+1})"

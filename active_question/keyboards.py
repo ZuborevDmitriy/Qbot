@@ -21,13 +21,10 @@ async def active_questions(page: int, user):
     if page < pages:
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"actquestpage_{page+1}_{pages}"))
     builder.row(*buttons)
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel)
     return builder.as_markup(resize_keyboard=True)
 
 async def back_to_menu(back: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    button2 = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    button1 = InlineKeyboardButton(text="В меню", callback_data="cancel")
-    builder.row(button1, button2)
+    button1 = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
+    builder.row(button1)
     return builder.as_markup()

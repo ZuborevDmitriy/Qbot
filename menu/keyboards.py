@@ -10,3 +10,8 @@ def main_table() -> ReplyKeyboardMarkup:
     button4 = KeyboardButton(text=f"DEV {emoji.emojize(':radioactive:')}")
     builder.add(button1,button2,button3, button4)
     return builder.adjust(1).as_markup(input_field_placeholder=f"Список функций{emoji.emojize(':gear:')}:")
+
+async def go_to_menu()->ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+    builder.add(KeyboardButton(text="В меню"))
+    return builder.adjust(1).as_markup(resize_keyboard=True, input_field_placeholder="...")

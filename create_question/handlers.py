@@ -67,9 +67,9 @@ async def get_projects_info(message: Message, bot:Bot, state:FSMContext):
     await state.set_state(Temp.nothing)
     data = await state.get_data()
     get_chat_id = message.chat.id
-    print(data.get('messages_id'))
     for values in data.get('messages_id').values():
         await bot(DeleteMessage(chat_id=get_chat_id, message_id=values))
+    await state.clear()
     await message.answer(text="Меню", reply_markup=menu_keyboards.main_table())
     
     
@@ -617,7 +617,7 @@ async def get_project_info(message: Message, state: FSMContext):
 @create_question_router.callback_query(F.data == "send")
 async def get_project_info(callback:CallbackQuery, state:FSMContext):
     user_id = callback.from_user.id
-    FIO = await rq.get_FIO(user_id)
+    tg_id = user_id
     data = await state.get_data()
     city_name = data['city_name']
     commercial_name = data['commercial_name']
@@ -655,7 +655,7 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
         'type_of_note':typologia_zamechaniya,
         'POS':bool(POS),
         'photo': send_photos,
-        'author':FIO
+        'author': tg_id
     }
     send_in_kafka0(dummy_message=kafka_message)
-    await callback.message.answer(text=message, reply_markup=await cqk.back_to_menu())
+    await callback.message.answer(text=message, reply_markup=menu_keyboards.main_table())

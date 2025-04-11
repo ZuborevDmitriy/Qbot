@@ -9,7 +9,7 @@ import regist.keyboards as regist_keyboard
 import menu.keyboards as menu_keyboards
 import emoji
 
-dict = {'phone':str, 'user_id': str}
+dict = {'user_id': str}
 
 class Register(StatesGroup):
     number = State()
@@ -37,7 +37,6 @@ async def register_number(message: Message, state: FSMContext):
     check_user = await rq.check_users(data['number'])
     if check_user == "1":
         await message.answer(text="Вы уже зарегистрированы!", reply_markup=menu_keyboards.main_table())
-        dict['phone'] = data.get('number')
         dict['user_id'] = message.from_user.id
     if check_user == "2":
         await state.set_state(Register.user_info)
@@ -51,6 +50,5 @@ async def register_user_info(message:Message, state:FSMContext):
     data = await state.get_data()
     await rq.reg_user(message.from_user.id, data['number'], data['user_info'])
     await message.answer(text="Вы успешно зарегистрированы!", reply_markup=menu_keyboards.main_table())
-    dict['phone'] = data.get('number')
     dict['user_id'] = message.from_user.id
     await state.clear()

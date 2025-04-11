@@ -81,7 +81,7 @@ async def send_query_after(make_id, cityname, commname, prname, comm, album, sys
         change_code = int(changecode),
         date = date,
         recomendation = recomend,
-        author = author,
+        author_id = author,
         status = stat
         )
         session.add(query)
@@ -99,7 +99,7 @@ async def search_duplicate(id):
 #Получение списка активных вопросов пользователя
 async def get_active_queries(user):
     async with async_session() as session:
-        queries = await session.execute(select(Query.id).where(Query.author==user, Query.status=='created'))
+        queries = await session.execute(select(Query.id).where(Query.author_id==user, Query.status=='created'))
         queries = queries.scalars().all()
         await session.close()
     return queries
@@ -114,7 +114,7 @@ async def get_active_query(id):
 #Получение списка архивных вопросов пользователя
 async def get_archive_queries(user):
     async with async_session() as session:
-        queries = await session.execute(select(Query.id).where(Query.author==user, Query.status=='closed'))
+        queries = await session.execute(select(Query.id).where(Query.author_id==user, Query.status=='closed'))
         queries = queries.scalars().all()
         await session.close()
     return queries
@@ -129,7 +129,7 @@ async def get_archive_query(id):
 #Получение списка всех вопросов пользователя dev
 async def get_dev_queries(user):
     async with async_session() as session:
-        queries = await session.execute(select(Query.id).where(Query.author==user, Query.status!='closed'))
+        queries = await session.execute(select(Query.id).where(Query.author_id==user, Query.status!='closed'))
         queries = queries.scalars().all()
         await session.close()
     return queries
@@ -142,12 +142,12 @@ async def get_dev_query(id):
     return query
 
 #Проверка вопроса по времени
-async def research_query(id, date_time):
+async def research_query():
     async with async_session() as session:
-        query = await session.execute(select(Query.date).where(Query.id==id))
-        query = query.scalars().first()
-        if(date_time > query):
-            return True
+        queries = await session.execute(select(Query.id, Query.date))
+        queries = queries.fetchall()
+        await session.close()
+    return queries
             
 #Обновление вопроса через dev
 async def update_dev_query(id, chcode, rec):
@@ -162,15 +162,15 @@ async def upd_dev_query(id, stat):
         await session.close()
 
 #Возвращаем последнюю запись в БД
-async def return_last_query(phone: str):
+async def return_last_query(message_tg_id: int):
     async with async_session() as session:
-        query_id = await session.scalar(select(Query.id).join(User, Query.author==User.user_info).where(User.phone_number==phone, Query.status=='created').order_by(Query.date.desc()).limit(1))
+        query_id = await session.scalar(select(Query.id).where(Query.author_id==message_tg_id, Query.status=='created').order_by(Query.date.desc()).limit(1))
         await session.close()
     return query_id
 
 #Возвращаем телеграм id пользователя
-async def return_user_id(phone: str):
-    async with async_session() as session:
-        user_id = await session.scalar(select(User.tg_id).where(User.phone_number==phone))
-        await session.close()
-    return user_id
+# async def return_user_id(phone: str):
+#     async with async_session() as session:
+#         user_id = await session.scalar(select(User.tg_id).where(User.phone_number==phone))
+#         await session.close()
+#     return user_id
