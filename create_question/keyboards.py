@@ -20,7 +20,6 @@ async def step_photo()->InlineKeyboardMarkup:
 async def second(next: str)->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Следующий пункт>>>", callback_data=f"{next}"))
-    builder.add(InlineKeyboardButton(text="Отмена", callback_data="cancel"))
     return builder.adjust(1).as_markup()
 
 #Если фотографию отправили сразу
@@ -40,8 +39,7 @@ async def city(page: int, back: str):
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"citypage_{page+1}_{pages}"))
     builder.row(*buttons)
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup(resize_keyboard=True)
 #Если фотографии сразу не отправлили
 async def city1(page: int):
@@ -125,8 +123,7 @@ async def third_step(page: int, back: str):
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"albumpage_{page+1}_{pages}"))
     builder.row(*buttons)
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup(resize_keyboard=True)
 
 async def choise(back: str, quest: str) -> InlineKeyboardMarkup:
@@ -134,8 +131,7 @@ async def choise(back: str, quest: str) -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text='Да', callback_data=f'{quest}_true'))
     builder.row(InlineKeyboardButton(text='Нет', callback_data=f'{quest}_false'))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup(resize_keyboard=True)
 
 async def state_of_work(back: str) -> InlineKeyboardMarkup:
@@ -148,8 +144,7 @@ async def state_of_work(back: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text=emoji.emojize(':keycap_6:'), callback_data="state_6"),
                 InlineKeyboardButton(text=emoji.emojize(':keycap_7:'), callback_data="state_7"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -157,8 +152,7 @@ async def type(back: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Можно пропустить", callback_data="skip"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup()
 
 
@@ -167,15 +161,13 @@ async def last_step_with_photo_without_file(back: str) -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text="Прикрепить файл", callback_data="add_file"))
     builder.row(InlineKeyboardButton(text="Подытожить", callback_data="conclude"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup()
 async def last_step_with_photo_with_file(back: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Подытожить", callback_data="conclude"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup()
 
 async def last_step_without_photo(back: str) -> InlineKeyboardMarkup:
@@ -183,23 +175,20 @@ async def last_step_without_photo(back: str) -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text="Прикрепить фото", callback_data="send_photo"))
     builder.row(InlineKeyboardButton(text="Фотографии отсутствуют", callback_data="end_without_photo"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup()
 async def last_step_without_photo_without_file(back: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Прикрепить файл", callback_data="add_file"))
     builder.row(InlineKeyboardButton(text="Подытожить", callback_data="conclude_without"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup()
 async def last_step_without_photo_with_file(back: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Подытожить", callback_data="conclude_without"))
     inline_button_back = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel, inline_button_back)
+    builder.row(inline_button_back)
     return builder.as_markup()
 
 
@@ -207,7 +196,6 @@ async def end() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Отправить", callback_data="send"))
     builder.add(InlineKeyboardButton(text="Изменить значение", callback_data="change_line"))
-    builder.row(InlineKeyboardButton(text="Отмена", callback_data="cancel"))
     return builder.as_markup()
 
 

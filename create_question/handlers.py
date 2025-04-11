@@ -40,20 +40,14 @@ class Temp(StatesGroup):
     
     
 get_chat_id: int
-get_message_id = array.array('i', [])
 #Хэндлер для выбора сценария работы программы
 @create_question_router.message(F.text == f"Создать вопрос {emoji.emojize(':pencil:')}")
 async def get_projects_info(message: Message, state:FSMContext):
-    global get_message_id
-    get_message_id.clear()
     await state.clear()
-    data = await state.get_data()
     message0 = await message.reply(text="Создаю вопрос...", reply_markup=await cqk.cancel_for_reply())
     message1 = await message.answer(text="Хотите отправить фото сейчас или потом?", reply_markup=await cqk.step_photo())
     await state.update_data(choise = None)
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
+    await state.update_data(messages_id = {f"{message0.text}":message0.message_id, f"{message1.text}":message1.message_id})
     await state.set_state(Temp.nothing)
 
 
@@ -73,12 +67,9 @@ async def get_projects_info(message: Message, bot:Bot, state:FSMContext):
     await state.set_state(Temp.nothing)
     data = await state.get_data()
     get_chat_id = message.chat.id
-    for i in range(len(data.get('messages_id'))):
-        if(data.get('messages_id')[i] != data.get('messages_id')[i-1]):
-            print(data.get('messages_id')[i])
-    for i in range(len(data.get('messages_id'))):
-        if(data.get('messages_id')[i] != data.get('messages_id')[i-1]):
-            await bot(DeleteMessage(chat_id=get_chat_id, message_id=data.get('messages_id')[i]))
+    print(data.get('messages_id'))
+    for values in data.get('messages_id').values():
+        await bot(DeleteMessage(chat_id=get_chat_id, message_id=values))
     await message.answer(text="Меню", reply_markup=menu_keyboards.main_table())
     
     
@@ -91,12 +82,9 @@ async def get_project_info(callback: CallbackQuery, state:FSMContext):
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
     if(data.get('choise')!=None):
-        message=await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.city(0, "send_photo"))
+        await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.city(0, "send_photo"))
     else:
-        message=await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.city1(0))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages)
+        await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.city1(0))
     
     
     
@@ -107,12 +95,9 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     page = callback.data.split("_")[1]
     pages = callback.data.split("_")[2]
     if(data.get('choise')!=None):
-        message=await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.city(int(page), "send_photo"))
+        await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.city(int(page), "send_photo"))
     else:
-        message=await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.city1(int(page)))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages)   
+        await callback.message.edit_text(text=f"Выберите город из списка:\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.city1(int(page)))
         
         
 #Хэндлер с требованием выслать фотографии
@@ -122,15 +107,12 @@ async def get_project_info(callback: CallbackQuery, state:FSMContext):
     choise = data.get('choise')
     if(choise==None):
         await state.update_data(choise=1)
-        message=await callback.message.edit_text(text="Отправьте нужные фотографии:")
+        await callback.message.edit_text(text="Отправьте нужные фотографии:")
     if(choise==1):
-        message=await callback.message.edit_text(text="Отправьте нужные фотографии:")
+        await callback.message.edit_text(text="Отправьте нужные фотографии:")
     if(choise==2):
-        message=await callback.message.edit_text(text="Отправьте нужные фотографии:")
+        await callback.message.edit_text(text="Отправьте нужные фотографии:")
     await state.set_state(Temp.photos)
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages) 
     
     
 flag_group_id = []
@@ -147,16 +129,18 @@ async def get_project_info(message: Message, state:FSMContext):
     await state.update_data(photos=photos)
     if not message.media_group_id:
         if(choise == 1):
-            await message.answer("Фотография получена.\nМожно отправить еще.", reply_markup=await cqk.second("chose_city"))
+            message=await message.answer("Фотография получена.\nМожно отправить еще.", reply_markup=await cqk.second("chose_city"))
         else:
-            await message.answer("Фотография получена.\nМожно отправить еще.", reply_markup=await cqk.last_step_with_photo_without_file("end_without_photo"))#Если фотографии решили добавить в конце
+            message=await message.answer("Фотография получена.\nМожно отправить еще.", reply_markup=await cqk.last_step_with_photo_without_file("end_without_photo"))#Если фотографии решили добавить в конце
     else:
         if flag_group_id.count(message.media_group_id) == 1:
             if(choise == 1):
-                await message.answer("Фотографии получены.\nМожно отправить еще.", reply_markup=await cqk.second("chose_city"))
+                message=await message.answer("Фотографии получены.\nМожно отправить еще.", reply_markup=await cqk.second("chose_city"))
             else:
-                await message.answer("Фотографии получены.\nМожно отправить еще.", reply_markup=await cqk.last_step_with_photo_without_file("end_without_photo"))#Если фотографии решили добавить в конце
-                
+                message=await message.answer("Фотографии получены.\nМожно отправить еще.", reply_markup=await cqk.last_step_with_photo_without_file("end_without_photo"))#Если фотографии решили добавить в конце
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
                 
                 
 #Хэндлер для получения списка ЖК
@@ -165,17 +149,15 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     data = await state.get_data()
     city = callback.data.split("_")[1]
     await state.update_data(city_name=city)
-    message0 = await callback.message.edit_text(text=f"Вы выбрали город - <u>{city}.</u>")
+    await callback.message.edit_text(text=f"Вы выбрали город - <u>{city}.</u>")
     button_data = await rq.get_comm(city)
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
-    message1 = await callback.message.answer(text=f"Выберите ЖК из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.commercial_name(0, city, "chose_city"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages) 
-    
-    
-    
+    message = await callback.message.answer(text=f"Выберите ЖК из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.commercial_name(0, city, "chose_city"))
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list) 
+
 #Хэндлер для пролистывания списка ЖК
 @create_question_router.callback_query(F.data.contains("commpage_"))
 async def get_project_info(callback:CallbackQuery, state:FSMContext):
@@ -184,9 +166,9 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     page = callback.data.split("_")[1]
     pages = callback.data.split("_")[2]
     message = await callback.message.edit_text(text=f"Выберите ЖК из списка:\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.commercial_name(int(page), city, "chose_city"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages) 
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list) 
     
     
     
@@ -196,15 +178,15 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     data = await state.get_data()
     comm = callback.data.split("_")[1]
     await state.update_data(commercial_name=comm)
-    message0 = await callback.message.edit_text(text=f"Вы выбрали ЖК - <u>{comm}</u>.")
+    await callback.message.edit_text(text=f"Вы выбрали ЖК - <u>{comm}</u>.")
     button_data = await rq.get_projects(comm)
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
     await state.set_state(Temp.nothing)
-    message1 = await callback.message.answer(text=f"Выберите проект из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.project_name(0, comm, "commpage_0_0"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)   
+    message = await callback.message.answer(text=f"Выберите проект из списка:\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.project_name(0, comm, "commpage_0_0"))
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)   
     
     
     
@@ -217,9 +199,9 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     pages = callback.data.split("_")[2]
     await state.set_state(Temp.nothing)
     message = await callback.message.edit_text(text=f"Выберите проект из списка:\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.project_name(int(page), comm, "commpage_0_0"))
-    list_messages = data.get('messages_id', [])
-    list_messages.append([message.message_id])
-    await state.update_data(messages_id = list_messages)
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
     
 #Хэндлер для получения комментария
 @create_question_router.callback_query(F.data.contains("project_"))
@@ -228,15 +210,13 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     project = callback.data.split("_")[1]
     await state.update_data(project_name=project)
     global get_chat_id
-    global get_message_id
-    message0 = await callback.message.edit_text(text=f"Вы выбрали проект - <u>{project}</u>.")
-    message1 = await callback.message.answer(text=f"Введите текстовый запрос:", reply_markup=await cqk.back(f"projectpage_0_0"))
+    await callback.message.edit_text(text=f"Вы выбрали проект - <u>{project}</u>.")
+    message = await callback.message.answer(text=f"Введите текстовый запрос:", reply_markup=await cqk.back(f"projectpage_0_0"))
     get_chat_id = callback.message.chat.id
-    get_message_id.append(message1.message_id)
     await state.set_state(Temp.comment)
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
 
 
 
@@ -245,7 +225,6 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
 async def get_project_info(message:Message, bot:Bot, state:FSMContext):
     data = await state.get_data()
     global get_chat_id
-    global get_message_id
     await state.update_data(comment=message.text)
     message0 = await message.answer(text=f"Текстовый комментарий - <u>{message.text}</u>.")
     project = data.get('project_name')
@@ -253,11 +232,12 @@ async def get_project_info(message:Message, bot:Bot, state:FSMContext):
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
     message1 = await message.answer(text=f"Выберите альбом из списка\n(страница {1} из {int(pages)+1})", reply_markup=await cqk.third_step(0, f"project_{project}"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
-    for i in get_message_id:
-        await bot(DeleteMessage(chat_id=get_chat_id, message_id=i))
+    mess_list = data.get('messages_id')
+    await bot(DeleteMessage(chat_id=get_chat_id, message_id=mess_list.get('Введите текстовый запрос:')))
+    mess_list.pop('Введите текстовый запрос:', None)
+    mess_list[f"{message0.text}"] = message0.message_id
+    mess_list[f"{message1.text}"] = message1.message_id
+    await state.update_data(messages_id = mess_list)
         
         
         
@@ -271,11 +251,7 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     page = callback.data.split("_")[1]
     pages = callback.data.split("_")[2]
     await state.set_state(Temp.album)
-    message0 = await callback.message.edit_text(text=f"Вы выбрали проект - <u>{project}</u>.")
-    message1 = await callback.message.answer(text=f"Выберите альбом из списка\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.third_step(int(page), f"project_{project}"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
+    await callback.message.edit_text(text=f"Выберите альбом из списка\n(страница {int(page)+1} из {int(pages)+1})", reply_markup=await cqk.third_step(int(page), f"project_{project}"))
 
 
 #Хэндлер для обработки альбома + является ли вопрос системным
@@ -284,11 +260,11 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     data = await state.get_data()
     album = callback.data.split("_")[1]
     await state.update_data(album=album)
-    message0 = await callback.message.edit_text(text=f"Вы выбрали альбом - <u>{album}</u>.")
-    message1 = await callback.message.answer(text="Вопрос являетя системным?", reply_markup=await cqk.choise("albumpage_0_0", "systq"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
+    await callback.message.edit_text(text=f"Вы выбрали альбом - <u>{album}</u>.")
+    message = await callback.message.answer(text="Вопрос являетя системным?", reply_markup=await cqk.choise("albumpage_0_0", "systq"))
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
 
 
 # Обработчик формы да/нет + определите состояние СМР по вопросу
@@ -297,16 +273,12 @@ async def get_project_info(callback:CallbackQuery, state:FSMContext):
     data = await state.get_data()
     choise = callback.data.split("_")[1]
     await state.update_data(system_quest = choise)
-    if choise:
-        choise = "Да"
-    else:
-        choise = "Нет"
     album = data.get('album')
-    message0 = await callback.message.edit_text(text=f"Вопрос является системным - <u>{choise}</u>.")
-    message1 = await callback.message.answer(text=f"Определите состояние на СМР по вопросу:\n<b>1)</b>Проводится тендер.\n<b>2)</b>Производится расчет бюджета по стадии П.\n<b>3)</b>Работы на СМР планируются к выполнению в течении 2х недель.\n<b>4)</b>Работы на СМР планируются к выполнению в течении месяца.\n<b>5)</b>Работы на СМР выполняются на текущий момент.\n<b>6)</b>СМР выполнены.\n<b>7)</b>Я проектировщик.", reply_markup=await cqk.state_of_work(f"album_{album}"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
+    await callback.message.edit_text(text=f"Вопрос является системным - <u>{choise}</u>.")
+    message = await callback.message.answer(text=f"Определите состояние на СМР по вопросу:\n<b>1)</b>Проводится тендер.\n<b>2)</b>Производится расчет бюджета по стадии П.\n<b>3)</b>Работы на СМР планируются к выполнению в течении 2х недель.\n<b>4)</b>Работы на СМР планируются к выполнению в течении месяца.\n<b>5)</b>Работы на СМР выполняются на текущий момент.\n<b>6)</b>СМР выполнены.\n<b>7)</b>Я проектировщик.", reply_markup=await cqk.state_of_work(f"album_{album}"))
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
 
 
 state_number = ''
@@ -328,42 +300,41 @@ async def get_project_info(callback: CallbackQuery, state: FSMContext):
     await state.update_data(state_of_works=state_result)
     await state.set_state(Temp.economic_effect)
     system_quest = data.get('system_quest')
-    message0 = await callback.message.edit_text(text=f"СМР по вопросу - \n<u>{state_result}</u>.")
-    message1 = await callback.message.answer(text="Введите ожидаемый экономический эффект\n(В рублях, целое или дробное):", reply_markup=await cqk.back(f"systq_{system_quest}"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
-    global get_message_id
-    get_message_id.clear()
-    get_message_id.append(message1.message_id)
+    await callback.message.edit_text(text=f"СМР по вопросу - \n<u>{state_result}</u>.")
+    message = await callback.message.answer(text="Введите ожидаемый экономический эффект\n(В рублях, целое или дробное):", reply_markup=await cqk.back(f"systq_{system_quest}"))
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
 
 #Хэндлер сохраняет экономический эффект и устанавливает состояние для сокращения сроков СМР
 @create_question_router.message(Temp.economic_effect)
 async def get_project_info(message: Message, bot:Bot, state: FSMContext):
     data = await state.get_data()
-    list_messages = data.get('messages_id', [])
+    mess_list = data.get('messages_id')
     global state_number
     global get_chat_id
-    global get_message_id
     try:
         if(float(message.text)>0):
             message0 = await message.answer(text=f"Экономический эффект - <u>{message.text}</u>.")
             await state.update_data(economic_effect=float(message.text))
-            list_messages.append(message0.message_id)
+            mess_list[f"{message0.text}"]=message0.message_id
             await state.set_state(Temp.reduce_time)
             message1 = await message.answer(text="Введите ожидаемое сокращение сроков СМР (дней):", reply_markup=await cqk.back(f"state_{state_number}"))
-            get_message_id.append(message1.message_id)
-            for i in get_message_id[0:len(get_message_id)-1]:
-                await bot(DeleteMessage(chat_id=get_chat_id, message_id=i))
+            mess_list[f"{message1.text}"]=message1.message_id
+            for values in ['Введите ожидаемый экономический эффект\n(В рублях, целое или дробное):','Значение должно быть больше нуля.','Введенное вами значение некорректно.\nВеличина измеряется в рублях, принимается как целое, так и дробное значение через точку.']:
+                id=data.get('messages_id').get(values)
+                if id != None :
+                    await bot(DeleteMessage(chat_id=get_chat_id, message_id=id))
+                    mess_list.pop(values, None)
         else:
             message2 = await message.answer(text="Значение должно быть <u>больше нуля</u>.")
-            get_message_id.append(message2.message_id)
+            mess_list[f"{message2.text}"]=message2.message_id
             return
     except:
         message3 = await message.answer(text="Введенное вами значение некорректно.\nВеличина измеряется в <u>рублях</u>, принимается как целое, так и дробное значение <u>через точку</u>.")
-        get_message_id.append(message3.message_id)
+        mess_list[f"{message3.text}"]=message3.message_id
         return
-    await state.update_data(messages_id = list_messages)
+    await state.update_data(messages_id = mess_list)
         
 # #Хэндлер дает возможность вернуться и ввести ожидаемое сокращение сроков СМР
 # @create_question_router.callback_query(F.data == "change_SMR")
@@ -378,122 +349,125 @@ async def get_project_info(message: Message, bot:Bot, state: FSMContext):
 #Хэндлер проверяет и сохраняет в FSM сокращение сроков и задает состояние для типологии замечаний
 @create_question_router.message(Temp.reduce_time)
 async def get_project_info(message: Message, bot:Bot, state: FSMContext):
-    data = await state.get_data()
-    list_messages = data.get('messages_id', [])
     global get_chat_id
-    global get_message_id
-    await bot(DeleteMessage(chat_id=get_chat_id, message_id=get_message_id[1]))
+    data = await state.get_data()
+    mess_list = data.get('messages_id')
+    for values in ['Введите ожидаемое сокращение сроков СМР (дней):', 'Введенное вами значение некорректно. Убедитесь, что вводимое вами значение - положительное целое число.']:
+        id=mess_list.get(values)
+        if id != None :
+            await bot(DeleteMessage(chat_id=get_chat_id, message_id=id))
+            mess_list.pop(values, None)
     input_message = message.text.isdigit()
     if input_message & input_message > 0:
         await state.update_data(reduce_time=message.text)
         await state.set_state(Temp.type_of_note)
         message0 = await message.answer(text=f"Ожидаемое сокращение сроков - <u>{message.text}</u>.")
         message1 = await message.answer(text="Определите типологию замечаний:", reply_markup=await cqk.type("change_SMR"))
-        list_messages.extend([message0.message_id, message1.message_id])
+        mess_list[f"{message0.text}"] = message0.message_id
+        mess_list[f"{message1.text}"] = message1.message_id
     else:
         message2 = await message.answer("Введенное вами значение некорректно. Убедитесь, что вводимое вами значение - <u>положительное целое число</u>.")
-        list_messages.append([message2.message_id])
+        mess_list[f"{message2.text}"] = message2.message_id
         return
-    await state.update_data(messages_id = list_messages)
-    get_message_id.clear()
+    await state.update_data(messages_id = mess_list)
     
     
     
 @create_question_router.callback_query(F.data == "change_type")
 async def get_project_info(callback: CallbackQuery, state: FSMContext):
     global get_chat_id
-    global get_message_id
     data = await state.get_data()
     await state.set_state(Temp.type_of_note)
     message = await callback.message.answer(text="Определите типологию замечаний:", reply_markup=await cqk.type("change_SMR"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages)
-    get_message_id.append(message.message_id)
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
 
 
 #Хэндлер для сохранения типа замечания + устанавливает состояние для вопроса об изменениях в ПОС
 @create_question_router.message(Temp.type_of_note)
-async def get_project_info(message:Message, state:FSMContext):
+async def get_project_info(message:Message, bot:Bot, state:FSMContext):
+    global get_chat_id
     data = await state.get_data()
-    message0 = await message.answer(text=f"Типология замечаний - {message.text}")
+    message0 = await message.answer(text=f"Типология замечаний - <u>{message.text}</u>")
     try:
         await state.update_data(type_of_note = message.text)
     except:
         await state.update_data(type_of_note = 0)
     message1 = await message.answer(text="Изменения вносятся в ПОС?", reply_markup=await cqk.choise("change_type", "posq"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message0.message_id, message1.message_id])
-    await state.update_data(messages_id = list_messages)
-
+    mess_list = data.get('messages_id')
+    await bot(DeleteMessage(chat_id=get_chat_id, message_id=mess_list.get('Определите типологию замечаний:')))
+    mess_list.pop('Определите типологию замечаний:', None)
+    mess_list[f"{message0.text}"] = message0.message_id
+    mess_list[f"{message1.text}"] = message1.message_id
+    await state.update_data(messages_id = mess_list)
 
 
 @create_question_router.callback_query(F.data == "skip")
 async def get_project_info(callback:CallbackQuery, state:FSMContext):
     data = await state.get_data()
     message = await callback.message.edit_text(text="Изменения вносятся в ПОС?", reply_markup=await cqk.choise("change_type", "posq"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages)
+    mess_list = data.get('messages_id')
+    mess_list[f"{message.text}"] = message.message_id
+    await state.update_data(messages_id = mess_list)
 
 
 
 
-@create_question_router.callback_query(F.data == "change_POS")
-async def get_project_info(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    message = await callback.message.edit_text(text="Изменения вносятся в ПОС?", reply_markup=await cqk.choise("change_type", "posq"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages)
+# @create_question_router.callback_query(F.data == "change_POS")
+# async def get_project_info(callback: CallbackQuery, state: FSMContext):
+#     data = await state.get_data()
+#     message = await callback.message.edit_text(text="Изменения вносятся в ПОС?", reply_markup=await cqk.choise("change_type", "posq"))
+#     mess_list = data.get('messages_id')
+#     mess_list[f"{message.text}"] = message.message_id
+#     await state.update_data(messages_id = mess_list)
 
 
 #Хэндлер обработчик формы да/нет для изменений в ПОС
 @create_question_router.callback_query(F.data.contains("posq_"))
-async def get_project_info(callback:CallbackQuery, state:FSMContext):
+async def get_project_info(callback:CallbackQuery, bot:Bot, state:FSMContext):
     data = await state.get_data()
     pos_answer = callback.data.split("_")[1]
     await state.update_data(POS = pos_answer)
+    message0 = await callback.message.edit_text(text=f"Измениения вносятся в ПОС - <u>{pos_answer}</u>")
     choise = data.get('choise')
     if choise == 1:
     #Если пользователь прикрепил фото в начале.
-        message = await callback.message.edit_text(text="Вопрос практически готов, осталось пару шагов.", reply_markup=await cqk.last_step_with_photo_without_file("change_POS"))
+        message1 = await callback.message.answer(text="Вопрос практически готов, осталось пару шагов.", reply_markup=await cqk.last_step_with_photo_without_file("change_POS"))
     elif choise == None:
         await state.update_data(choise=2)
-        message = await callback.message.edit_text(text="Вопрос практически готов, осталось пару шагов.", reply_markup=await cqk.last_step_without_photo("change_POS"))
+        message1 = await callback.message.answer(text="Вопрос практически готов, осталось пару шагов.", reply_markup=await cqk.last_step_without_photo("change_POS"))
     else:
         #Если пользователь нажал кнопку отправить фото и сразу вернулся.
-        await callback.message.edit_text(text="Вопрос практически готов, осталось пару шагов777.", reply_markup=await cqk.last_step_without_photo_without_file("change_POS"))
+        message1 = await callback.message.answer(text="Вопрос практически готов, осталось пару шагов777.", reply_markup=await cqk.last_step_without_photo_without_file("change_POS"))
         #Если пользователь не прикрепил фото в начале.
-        await state.update_data(choise=2)
-        await callback.message.edit_text(text="Вопрос практически готов, осталось пару шагов666.", reply_markup=await cqk.last_step_without_photo("change_POS"))
-    list_messages = data.get('messages_id', [])
-    list_messages.extend([message.message_id])
-    await state.update_data(messages_id = list_messages)
+        message1 = await state.update_data(choise=2)
+        message1 = await callback.message.answer(text="Вопрос практически готов, осталось пару шагов666.", reply_markup=await cqk.last_step_without_photo("change_POS"))
+    mess_list = data.get('messages_id')
+    await bot(DeleteMessage(chat_id=get_chat_id, message_id=mess_list.get('Изменения вносятся в ПОС?')))
+    mess_list.pop('Изменения вносятся в ПОС?', None)
+    mess_list[f"{message0.text}"] = message0.message_id
+    mess_list[f"{message1.text}"] = message1.message_id
+    await state.update_data(messages_id = mess_list)
 
-
-#Хэндлер для прикрепления файла.
-@create_question_router.callback_query(F.data == "add_file")
-async def get_project_info(callback:CallbackQuery, state:FSMContext):
-    message_text = "Отправьте файл"
-    await callback.message.edit_text(text=message_text)
-    await state.set_state(Temp.files)
-
-
-
-
-@create_question_router.message(Temp.files)
-async def get_project_info(message:Message, state:FSMContext):
-    file_info = f"{message.document.file_name}_{message.document.file_id}"
-    data = await state.get_data()
-    photos = data['photos']
-    files = data.get('files', [])
-    files.append(file_info)
-    await state.update_data(files=files)
-    if photos != None:
-        await message.answer("Файл получен.\nМожно отправить еще.", reply_markup=await cqk.last_step_with_photo_with_file('hi'))
-    else:
-        await message.answer("Файл получен.\nМожно отправить еще.", reply_markup=await cqk.last_step_without_photo_with_file('hi'))
+# #Хэндлер для прикрепления файла.
+# @create_question_router.callback_query(F.data == "add_file")
+# async def get_project_info(callback:CallbackQuery, state:FSMContext):
+#     message_text = "Отправьте файл"
+#     await callback.message.edit_text(text=message_text)
+#     await state.set_state(Temp.files)
+# @create_question_router.message(Temp.files)
+# async def get_project_info(message:Message, state:FSMContext):
+#     file_info = f"{message.document.file_name}_{message.document.file_id}"
+#     data = await state.get_data()
+#     photos = data['photos']
+#     files = data.get('files', [])
+#     files.append(file_info)
+#     await state.update_data(files=files)
+#     if photos != None:
+#         await message.answer("Файл получен.\nМожно отправить еще.", reply_markup=await cqk.last_step_with_photo_with_file('hi'))
+#     else:
+#         await message.answer("Файл получен.\nМожно отправить еще.", reply_markup=await cqk.last_step_without_photo_with_file('hi'))
 
 
 

@@ -12,18 +12,28 @@ from config.config import PAGE_COUNT
 from aiogram.utils.media_group import MediaGroupBuilder
 import menu.keyboards as menu_keyboards
 from python_kafka.producer import upd_with_kafka
+import emoji
+import dev_block.keyboards as dbk
 
 dev_question_router = Router()
 
+
+#Хэндлер для возвращения в меню для reply
+@dev_question_router.message(F.text == "В меню")
+async def get_projects_info(message: Message):
+    await message.answer(text="Меню", reply_markup=menu_keyboards.main_table())
+
 #Хэндлер для получения списка вопросов
-@dev_question_router.callback_query(F.data == 'list_queries_to_update')
-async def obtain_project_info(callback:CallbackQuery):
-    user = await rq.get_FIO(callback.from_user.id)
+@dev_question_router.message(F.text == f"DEV {emoji.emojize(':radioactive:')}")
+async def obtain_project_info(message:Message):
+    await message.reply(text="Перехожу в блок DEV...", reply_markup=await dbk.go_to_menu())
+    user = await rq.get_FIO(message.from_user.id)
     button_data = await rq.get_dev_queries(user)
     array_lenght = len(button_data)
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
     message_text = f"Выберите вопрос из списка ({1}/{int(pages)+1})"
-    await callback.message.edit_text(text=message_text, reply_markup=await dbk.dev_questions(0, user))
+    await message.answer(text=message_text, reply_markup=await dbk.dev_questions(0, user))
+
 #Хэндлер для пролистывания списка вопросов
 @dev_question_router.callback_query(F.data.contains("devquestpage_"))
 async def obtain_project_info(callback:CallbackQuery):
@@ -58,7 +68,7 @@ async def obtain_project_info(callback:CallbackQuery):
     }
     upd_with_kafka(dummy_message=kafka_message)
     message_text = 'Все сработало, можете проверить'
-    await callback.message.edit_text(text=message_text, reply_markup= await dbk.go_to_menu())
+    await callback.message.edit_text(text=message_text)
     
 #Хэндлер для закрытия выбранного вопроса
 @dev_question_router.callback_query(F.data.contains("devclose_"))
@@ -71,4 +81,4 @@ async def obtain_project_info(callback:CallbackQuery):
     }
     upd_with_kafka(dummy_message=kafka_message)
     message_text = 'Все сработало, можете проверить'
-    await callback.message.edit_text(text=message_text, reply_markup= await dbk.go_to_menu())
+    await callback.message.edit_text(text=message_text)

@@ -21,8 +21,6 @@ async def dev_questions(page: int, user):
     if page < pages:
         buttons.append(InlineKeyboardButton(text=">>>", callback_data=f"devquestpage_{page+1}_{pages}"))
     builder.row(*buttons)
-    inline_button_cancel = InlineKeyboardButton(text="Отмена", callback_data="cancel")
-    builder.row(inline_button_cancel)
     return builder.as_markup(resize_keyboard=True)
 
 async def dev_choise(param: int):
@@ -31,14 +29,10 @@ async def dev_choise(param: int):
     button1 = InlineKeyboardButton(text=text1, callback_data=f'devupdate_{param}')
     text2 = "Закрыть вопрос"
     button2 = InlineKeyboardButton(text=text2, callback_data=f'devclose_{param}')
-    text3 = "Отмена"
-    button3 = InlineKeyboardButton(text=text3, callback_data=f'cancel')
-    builder.add(button1, button2, button3)
+    builder.add(button1, button2)
     return builder.adjust(1).as_markup()
 
-async def go_to_menu():
-    builder = InlineKeyboardBuilder()
-    text = "В меню"
-    button = InlineKeyboardButton(text=text, callback_data=f'cancel')
-    builder.add(button)
-    return builder.adjust(1).as_markup()
+async def go_to_menu()->ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+    builder.add(KeyboardButton(text="В меню"))
+    return builder.adjust(1).as_markup(resize_keyboard=True, input_field_placeholder="...")

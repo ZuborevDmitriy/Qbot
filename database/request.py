@@ -160,3 +160,17 @@ async def upd_dev_query(id, stat):
         await session.execute(update(Query).where(Query.id==id).values(status=stat))
         await session.commit()
         await session.close()
+
+#Возвращаем последнюю запись в БД
+async def return_last_query(phone: str):
+    async with async_session() as session:
+        query_id = await session.scalar(select(Query.id).join(User, Query.author==User.user_info).where(User.phone_number==phone, Query.status=='created').order_by(Query.date.desc()).limit(1))
+        await session.close()
+    return query_id
+
+#Возвращаем телеграм id пользователя
+async def return_user_id(phone: str):
+    async with async_session() as session:
+        user_id = await session.scalar(select(User.tg_id).where(User.phone_number==phone))
+        await session.close()
+    return user_id
