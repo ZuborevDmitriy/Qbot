@@ -3,7 +3,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 import database.request as rq
 from config.config import PAGE_COUNT
-from aiogram.filters.callback_data import CallbackData
 import emoji
 
 async def cancel_for_reply()->ReplyKeyboardMarkup:
@@ -195,7 +194,6 @@ async def last_step_without_photo_with_file(back: str) -> InlineKeyboardMarkup:
 async def end() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Отправить", callback_data="send"))
-    builder.add(InlineKeyboardButton(text="Изменить значение", callback_data="change_line"))
     return builder.as_markup()
 
 

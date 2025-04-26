@@ -1,5 +1,5 @@
-from sqlalchemy import BigInteger, VARCHAR, BOOLEAN, TEXT, FLOAT, LargeBinary, INTEGER, ForeignKey, DateTime, delete
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import BigInteger, VARCHAR, BOOLEAN, TEXT, FLOAT, INTEGER, ForeignKey, DateTime
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from config.config import SQLALCHEMY_URL
 

@@ -1,8 +1,8 @@
 import json
-import asyncio, logging
+import asyncio
 from datetime import datetime
 import database.request as rq
-from kafka import KafkaConsumer, TopicPartition
+from kafka import KafkaConsumer
 
 consumer = KafkaConsumer('updmess',bootstrap_servers='localhost:9092',enable_auto_commit=False,auto_offset_reset='earliest',heartbeat_interval_ms=3000,max_poll_interval_ms=30000,session_timeout_ms=45000)
 

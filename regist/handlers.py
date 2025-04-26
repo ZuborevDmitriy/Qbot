@@ -1,13 +1,12 @@
 from aiogram import Router, F
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.utils import markdown
 import database.request as rq
 import regist.keyboards as regist_keyboard
 import menu.keyboards as menu_keyboards
-import emoji
 
 dict = {'user_id': str}
 

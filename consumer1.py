@@ -1,5 +1,5 @@
 import json
-import asyncio, logging
+import asyncio
 import datetime
 import database.request as rq
 from kafka import KafkaConsumer

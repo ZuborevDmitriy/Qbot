@@ -1,10 +1,8 @@
 import math
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 import database.request as rq
 from config.config import PAGE_COUNT
-from aiogram.filters.callback_data import CallbackData
-import emoji
 
 async def dev_questions(page: int, user):
     button_data = await rq.get_dev_queries(user)

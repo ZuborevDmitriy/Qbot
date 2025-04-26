@@ -12,28 +12,16 @@ from menu.handlers import menu_router
 from aiogram.enums import ParseMode
 from database.models import async_main
 import database.request as rq
-from regist.handlers import dict
 from config.config import SQL_URL
 
 bot = Bot(token=os.getenv('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
-async def checker():
-    old_values = {'id':str}
-    flag = True
-    while flag==True:
-        await asyncio.sleep(10)
-        try:
-            old_values['id']=await rq.return_last_query(dict.get('user_id'))
-            flag = False
-        except:
-            print("Не могу найти данные!")
-    while flag==False:
-        await asyncio.sleep(10)
-        new_values = await rq.return_last_query(dict.get('user_id'))
-        if old_values['id'] != new_values:
-            await bot.send_message(dict.get('user_id'), text=f"Добавилась новая запись №{new_values}.")
-            old_values['id'] = new_values
+async def query_appear(conn, pid, channel, payload):
+    data = json.loads(payload)
+    author_id = data.get('author')
+    query_id = data.get('query')
+    await bot.send_message(int(author_id), text=f"Добавилась новая запись №{query_id}.")
 
 async def on_query_change(conn, pid, channel, payload):
     data = json.loads(payload)
@@ -51,10 +39,10 @@ async def on_query_change(conn, pid, channel, payload):
 
 async def main():
     conn = await asyncpg.connect(SQL_URL)
+    await conn.add_listener("user_notifications", query_appear)
     await conn.add_listener("query_changes", on_query_change)
     logging.basicConfig(level=logging.INFO)
     dp.include_routers(menu_router, regist_router, create_question_router, active_question_router, archive_question_router, dev_question_router)
-    asyncio.create_task(checker())
     # await async_main()
     await dp.start_polling(bot)
     

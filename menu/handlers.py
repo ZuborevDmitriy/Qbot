@@ -11,7 +11,11 @@ async def get_projects_info(message: Message, bot:Bot, state:FSMContext):
     await state.set_state(Temp.nothing)
     data = await state.get_data()
     get_chat_id = message.chat.id
-    for values in data.get('messages_id').values():
-        await bot(DeleteMessage(chat_id=get_chat_id, message_id=values))
+    try:
+        for values in data.get('messages_id').values():
+            await bot(DeleteMessage(chat_id=get_chat_id, message_id=values))
+    except:
+        for values in data.get('messages_id'):
+            await bot(DeleteMessage(chat_id=get_chat_id, message_id=values))
     await state.clear()
     await message.answer(text="Меню", reply_markup=menu_keyboards.main_table())

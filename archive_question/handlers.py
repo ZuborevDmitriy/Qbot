@@ -1,18 +1,13 @@
 import math
-import asyncio
-import random
-from datetime import datetime
+from aiogram.methods.delete_message import DeleteMessage
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InputMediaPhoto
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 import archive_question.keyboards as aqk
 import database.request as rq
 from config.config import PAGE_COUNT
 from aiogram.utils.media_group import MediaGroupBuilder
-import menu.keyboards as menu_keyboards
 import emoji
-from create_question.handlers import Temp
 import menu.keyboards as mk
 
 archive_question_router = Router()
@@ -26,11 +21,18 @@ async def obtain_project_info(message:Message, state:FSMContext):
     message0 = await message.reply(text="Переходим в архивные вопросы...", reply_markup=await mk.go_to_menu())
     pages = math.ceil(array_lenght/int(PAGE_COUNT)) - 1
     message1 = await message.answer(text=f"Список архивных вопросов: {array_lenght}\nСтраниа {1} из {int(pages)+1}.\nВыберите вопрос из списка:", reply_markup=await aqk.archive_questions(0, user))
-    await state.update_data(messages_id = {f"{message0.text}":message0.message_id, f"{message1.text}":message1.message_id})
+    await state.update_data(messages_id = [message0.message_id, message1.message_id])
 
 #Хэндлер для получения списка вопросов для кнопки назад
 @archive_question_router.callback_query(F.data == "archive")
-async def obtain_project_info(callback: CallbackQuery):
+async def obtain_project_info(callback: CallbackQuery, bot:Bot, state:FSMContext):
+    data = await state.get_data()
+    message_list = data.get('messages_id')
+    get_chat_id = callback.message.chat.id
+    if(message_list!=None):
+        if(len(message_list)>=3):
+            for val in [message_list.pop(1), message_list.pop(1)]:
+                await bot(DeleteMessage(chat_id=get_chat_id, message_id=val))
     user = callback.from_user.id
     button_data = await rq.get_archive_queries(user)
     array_lenght = len(button_data)
@@ -51,7 +53,8 @@ async def obtain_project_info(callback:CallbackQuery):
 
 #Хэндлер для обработки выбранного вопроса
 @archive_question_router.callback_query(F.data.contains("arcquest_"))
-async def obtain_project_info(callback:CallbackQuery, bot:Bot):
+async def obtain_project_info(callback:CallbackQuery, bot:Bot, state:FSMContext):
+    data = await state.get_data()
     query_id = callback.data.split("_")[1]
     query_info = await rq.get_archive_query(int(query_id))
     city_name = query_info.city_name
@@ -85,7 +88,11 @@ async def obtain_project_info(callback:CallbackQuery, bot:Bot):
         photo_group = MediaGroupBuilder(caption=message_text)
         for ph in photos:
             photo_group.add_photo(ph)
-        await bot.send_media_group(chat_id=callback.message.chat.id, media=photo_group.build())
-        await callback.message.answer(text="Выберите действие:", reply_markup=await aqk.back_to_menu("archive_query"))
+        message0 = await bot.send_media_group(chat_id=callback.message.chat.id, media=photo_group.build())
+        message1 = await callback.message.answer(text="Выберите действие:", reply_markup=await aqk.back_to_menu("archive_query"))
+        mess_list = data.get('messages_id')
+        mess_list.append(message0[0].message_id)
+        mess_list.append(message1.message_id)
+        await state.update_data(messages_id = mess_list)
     else:
         await callback.message.edit_text(text=message_text, reply_markup=await aqk.back_to_menu("archive_query"))

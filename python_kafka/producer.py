@@ -1,6 +1,4 @@
-import time
 import json
-import random
 from kafka import KafkaProducer
 
 def serializer(message):

@@ -1,20 +1,15 @@
 import math
-import asyncio
 import random
 from datetime import datetime
-from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InputMediaPhoto
-from aiogram.fsm.state import State, StatesGroup
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 import dev_block.keyboards as dbk
 import database.request as rq
 from config.config import PAGE_COUNT
-from aiogram.utils.media_group import MediaGroupBuilder
-import menu.keyboards as menu_keyboards
 from python_kafka.producer import upd_with_kafka
 import emoji
 import dev_block.keyboards as dbk
-from create_question.handlers import Temp
 import menu.keyboards as mk
 
 dev_question_router = Router()

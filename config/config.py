@@ -10,4 +10,4 @@ SQL_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 SQLALCHEMY_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 #сколько элементов в списке будут отображаться на странице
-PAGE_COUNT=3
+PAGE_COUNT=6

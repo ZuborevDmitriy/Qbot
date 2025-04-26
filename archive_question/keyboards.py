@@ -1,10 +1,8 @@
 import math
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 import database.request as rq
 from config.config import PAGE_COUNT
-from aiogram.filters.callback_data import CallbackData
-import emoji
 
 async def archive_questions(page: int, user):
     button_data = await rq.get_archive_queries(user)
@@ -25,6 +23,6 @@ async def archive_questions(page: int, user):
 
 async def back_to_menu(back: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    button1 = InlineKeyboardButton(text="Назад", callback_data=f"{back}")
+    button1 = InlineKeyboardButton(text="Назад", callback_data=f"archive")
     builder.row(button1)
     return builder.as_markup()

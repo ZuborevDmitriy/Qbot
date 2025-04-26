@@ -1,8 +1,6 @@
 import json
-import asyncio, logging
-from datetime import date
+import asyncio
 import random
-import database.request as rq
 from kafka import KafkaConsumer
 from datetime import datetime
 from python_kafka.producer import send_in_kafka1
